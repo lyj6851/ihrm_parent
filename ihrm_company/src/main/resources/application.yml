@@ -1,0 +1,18 @@
+#服务配置
+server:
+  port: 9001
+#spring配置  1.应用配置 2.数据连接池 3.JPA
+spring:
+  application:
+    name: ihrm-company
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://47.100.238.213:53306/ihrm?characterEncoding=UTF8
+    username: root
+    password: admin
+  jpa:
+    database: mysql
+    show-sql: true
+    open-in-view: true
+    hibernate:
+      ddl-auto: update
