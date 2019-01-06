@@ -35,7 +35,7 @@ public class CompanyController {
      * 根据id更新企业
      */
     @PutMapping("/{id}")
-    public Result update(@PathVariable(value = "id") String id, @RequestBody Company company){
+    public Result update(@PathVariable(name = "id") String id, @RequestBody Company company){
         company.setId(id);
         companyService.update(company);
         return new Result(ResultCode.SUCCESS);
@@ -45,7 +45,7 @@ public class CompanyController {
      * 根据id删除企业
      */
     @DeleteMapping("/{id}")
-    public Result delete(@PathVariable(value = "id") String id){
+    public Result delete(@PathVariable(name = "id") String id){
         companyService.deleteById(id);
         return new Result(ResultCode.SUCCESS);
     }
@@ -54,7 +54,7 @@ public class CompanyController {
      * 根据id查询企业
      */
     @GetMapping("/{id}")
-    public Result findById(@PathVariable(value = "id")String id){
+    public Result findById(@PathVariable(name = "id")String id){
         Company data = companyService.findById(id);
         Result result = new Result(ResultCode.SUCCESS);
         result.setData(data);
