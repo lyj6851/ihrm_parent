@@ -2,18 +2,19 @@ package com.ihrm.system.service;
 
 import com.ihrm.common.service.BaseService;
 import com.ihrm.common.utils.IdWorker;
+import com.ihrm.common.utils.PermissionConstants;
+import com.ihrm.domain.system.Permission;
 import com.ihrm.domain.system.Role;
+import com.ihrm.system.dao.PermissionDao;
 import com.ihrm.system.dao.RoleDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * <p>role service</p>
@@ -26,6 +27,9 @@ public class RoleService extends BaseService<Role> {
 
     @Autowired
     private RoleDao roleDao;
+
+    @Autowired
+    private PermissionDao permissionDao;
 
     @Autowired
     private IdWorker idWorker;
@@ -50,13 +54,31 @@ public class RoleService extends BaseService<Role> {
         roleDao.deleteById(id);
     }
 
+    public List<Role> findAll(String companyId) {
+        return roleDao.findAll(super.getSpect(companyId));
+    }
+
     public Page<Role> findSearch(String companyId, int page, int size){
-        Specification<Role> specification = new Specification<Role>() {
-            @Override
-            public Predicate toPredicate(Root<Role> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
-                return criteriaBuilder.equal(root.get("companyId").as(String.class), companyId);
-            }
-        };
-        return roleDao.findAll(specification, PageRequest.of(page, size));
+        return roleDao.findAll(super.getSpect(companyId), PageRequest.of(page-1, size));
+    }
+
+    /**
+     * 分配权限
+     */
+    public void assignPerms(String roleId, List<String> permIds) {
+        Role role = roleDao.findById(roleId).get();
+        Set<Permission> perms = new HashSet<Permission>();
+        for(String permId:permIds){
+            Permission permission = permissionDao.findById(permId).get();
+            //需要根据父id和类型查询权限列表
+            List<Permission> apiList = permissionDao.findByTypeAndPid(PermissionConstants.PY_API, permission.getPid());
+            //自动赋予API权限
+            perms.addAll(apiList);
+            //当前菜单或按钮的权限
+            perms.add(permission);
+        }
+        //设置角色和权限的关系
+        role.setPermissions(perms);
+        roleDao.save(role);
     }
 }

@@ -5,10 +5,14 @@ import com.ihrm.common.entity.PageResult;
 import com.ihrm.common.entity.Result;
 import com.ihrm.common.entity.ResultCode;
 import com.ihrm.domain.system.Role;
+import com.ihrm.domain.system.response.RoleResult;
 import com.ihrm.system.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * <p>role controller</p>
@@ -23,6 +27,14 @@ public class RoleController extends BaseController {
 
     @Autowired
     private RoleService roleService;
+
+    @PutMapping("/role/assignPrem")
+    public Result save(@RequestBody Map<String, Object> map){
+        String roleId = (String) map.get("id");
+        List<String> permIds = (List<String>) map.get("permIds");
+        roleService.assignPerms(roleId, permIds);
+        return new Result(ResultCode.SUCCESS);
+    }
 
     @PostMapping("/role")
     public Result add(@RequestBody Role role){
@@ -47,14 +59,24 @@ public class RoleController extends BaseController {
     @GetMapping("/role/{id}")
     public Result findById(@PathVariable(name = "id")String id){
         Role role = roleService.findById(id);
-        return new Result(ResultCode.SUCCESS, role);
+        RoleResult roleResult = new RoleResult(role);
+        return new Result(ResultCode.SUCCESS, roleResult);
     }
 
-    @GetMapping("/role")
-    public Result findByPage(int page, int size, Role role){
-        Page<Role> rolePage = roleService.findSearch(companyId, page, size);
-        PageResult<Role> pageResult = new PageResult<Role>(rolePage.getTotalElements(), rolePage.getContent());
-        return new Result(ResultCode.SUCCESS, pageResult);
+    /**
+     * 分页查询角色
+     */
+    @RequestMapping(value = "/role", method = RequestMethod.GET)
+    public Result findByPage(int page,int pagesize,Role role){
+        Page<Role> searchPage = roleService.findSearch(companyId, page, pagesize);
+        PageResult<Role> pr = new PageResult(searchPage.getTotalElements(),searchPage.getContent());
+        return new Result(ResultCode.SUCCESS,pr);
+    }
+
+    @RequestMapping(value="/role/list" ,method=RequestMethod.GET)
+    public Result findAll() {
+        List<Role> roleList = roleService.findAll(companyId);
+        return new Result(ResultCode.SUCCESS,roleList);
     }
 
 }

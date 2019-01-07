@@ -1,7 +1,9 @@
 package com.ihrm.system.service;
 
 import com.ihrm.common.utils.IdWorker;
+import com.ihrm.domain.system.Role;
 import com.ihrm.domain.system.User;
+import com.ihrm.system.dao.RoleDao;
 import com.ihrm.system.dao.UserDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -14,9 +16,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * <p>user service</p>
@@ -29,6 +29,9 @@ public class UserService {
 
     @Autowired
     private UserDao userDao;
+
+    @Autowired
+    private RoleDao roleDao;
 
     @Autowired
     private IdWorker idWorker;
@@ -99,5 +102,23 @@ public class UserService {
 
     public void deleteById(String id){
         userDao.deleteById(id);
+    }
+
+    public void assignRoles(String userId, List<String> roleIds) {
+        User user = userDao.findById(userId).get();
+        Set<Role> roles = new HashSet<Role>();
+        for(String roleId:roleIds){
+            Role role = roleDao.findById(roleId).get();
+            roles.add(role);
+        }
+        user.setRoles(roles);
+        userDao.save(user);
+    }
+
+    /**
+     * 用户登录
+     */
+    public User findByMobile(String mobile){
+        return userDao.findByMobile(mobile);
     }
 }
