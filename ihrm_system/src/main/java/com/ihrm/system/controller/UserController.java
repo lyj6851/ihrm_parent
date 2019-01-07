@@ -5,6 +5,7 @@ import com.ihrm.common.entity.PageResult;
 import com.ihrm.common.entity.Result;
 import com.ihrm.common.entity.ResultCode;
 import com.ihrm.common.utils.JwtUtils;
+import com.ihrm.domain.system.ProfileResult;
 import com.ihrm.domain.system.User;
 import com.ihrm.domain.system.response.UserResult;
 import com.ihrm.system.service.UserService;
@@ -95,5 +96,15 @@ public class UserController extends BaseController {
             String token = jwtUtils.createJwt(user.getId(), user.getUsername(), map);
             return new Result(ResultCode.SUCCESS, token);
         }
+    }
+
+    /**
+     * 用户登录成功后，获取用户信息
+     */
+    @PostMapping("/profile")
+    public Result profile(){
+        String userId = "1082170283009413120";
+        User user = userService.findById(userId);
+        return new Result(ResultCode.SUCCESS, new ProfileResult(user));
     }
 }
