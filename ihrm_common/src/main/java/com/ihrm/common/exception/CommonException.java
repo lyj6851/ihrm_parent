@@ -10,11 +10,11 @@ import lombok.Getter;
  * @date 2019/01/07
  */
 @Getter
-public class CommonException extends RuntimeException {
+public class CommonException extends RuntimeException  {
 
     private ResultCode resultCode;
 
-    public CommonException(ResultCode resultCode){
+    public CommonException(ResultCode resultCode) {
         this.resultCode = resultCode;
     }
 }
