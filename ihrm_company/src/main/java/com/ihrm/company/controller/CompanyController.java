@@ -1,5 +1,6 @@
 package com.ihrm.company.controller;
 
+import com.ihrm.common.controller.BaseController;
 import com.ihrm.common.entity.Result;
 import com.ihrm.common.entity.ResultCode;
 import com.ihrm.company.service.CompanyService;
@@ -17,7 +18,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/company")
-public class CompanyController {
+public class CompanyController extends BaseController {
 
     @Autowired
     private CompanyService companyService;

@@ -6,6 +6,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
+import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
 
 /**
  * <p>启动类</p>
@@ -13,7 +14,7 @@ import org.springframework.context.annotation.Bean;
  * @author xiaodongsun
  * @date 2019/1/6
  */
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.ihrm")
 @EntityScan(basePackages = "com.ihrm.domain.system")
 public class SystemApplication {
 
@@ -29,5 +30,14 @@ public class SystemApplication {
     @Bean
     public JwtUtils jwtUtils(){
         return new JwtUtils();
+    }
+
+    /**
+     * 解决 no session
+     * @return
+     */
+    @Bean
+    public OpenEntityManagerInViewFilter openEntityManagerInViewFilter(){
+        return new OpenEntityManagerInViewFilter();
     }
 }

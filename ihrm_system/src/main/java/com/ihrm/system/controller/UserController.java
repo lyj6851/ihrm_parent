@@ -8,12 +8,20 @@ import com.ihrm.common.utils.JwtUtils;
 import com.ihrm.domain.system.ProfileResult;
 import com.ihrm.domain.system.User;
 import com.ihrm.domain.system.response.UserResult;
+import com.ihrm.system.service.PermissionService;
 import com.ihrm.system.service.UserService;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.apache.shiro.crypto.hash.Md5Hash;
+import org.apache.shiro.subject.PrincipalCollection;
+import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +38,9 @@ public class UserController extends BaseController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private PermissionService permissionService;
 
     @Autowired
     private JwtUtils jwtUtils;
@@ -73,7 +84,8 @@ public class UserController extends BaseController {
         return new Result(ResultCode.SUCCESS);
     }
 
-    @DeleteMapping("/user/{id}")
+    @RequiresPermissions("API-USER-DELETE")
+    @DeleteMapping(value = "/user/{id}", name = "API-USER-DELETE")
     public Result deleteById(@PathVariable(name = "id")String id){
         userService.deleteById(id);
         return new Result(ResultCode.SUCCESS);
@@ -82,29 +94,80 @@ public class UserController extends BaseController {
     /**
      * 用户登录
      */
-    @PostMapping("/login")
+    /*@PostMapping("/login")
     public Result login(@RequestBody Map<String, String> loginMap){
         String mobile = loginMap.get("mobile");
         String password = loginMap.get("password");
+        password = new Md5Hash(password, mobile, 3).toString();
         User user = userService.findByMobile(mobile);
         if (user == null || !user.getPassword().equals(password)){
             return new Result(ResultCode.MOBILEORPASSWORDERROR);
         }else{
+            //api权限字符串
+            StringBuilder sb = new StringBuilder();
+            for (Role role : user.getRoles()) {
+                for (Permission permission : role.getPermissions()) {
+                    if (permission.getType() == PermissionConstants.PY_API) {
+                        sb.append(permission.getCode()).append(",");
+                    }
+                }
+            }
             Map<String, Object> map = new HashMap<>();
+            map.put("apis", sb.toString().substring(0, sb.length()-1));
             map.put("companyId", user.getCompanyId());
             map.put("companyName", user.getCompanyName());
             String token = jwtUtils.createJwt(user.getId(), user.getUsername(), map);
             return new Result(ResultCode.SUCCESS, token);
         }
-    }
+    }*/
 
     /**
      * 用户登录成功后，获取用户信息
      */
-    @PostMapping("/profile")
-    public Result profile(){
-        String userId = "1082170283009413120";
+    /*@PostMapping("/profile")
+    public Result profile(HttpServletRequest request){
+        String userId = claims.getId();
         User user = userService.findById(userId);
-        return new Result(ResultCode.SUCCESS, new ProfileResult(user));
+        ProfileResult result = null;
+        //根据不同的用户级别获取用户权限
+        if ("user".equals(user.getLevel())){
+            result = new ProfileResult(user);
+        }else{
+            Map map = new HashMap();
+            if ("coAdmin".equals(user.getLevel())) {
+                map.put("enVisible", 1);
+            }
+            List<Permission> list = permissionService.findAll(map);
+            result = new ProfileResult(user, list);
+        }
+
+        return new Result(ResultCode.SUCCESS, result);
+    }*/
+
+
+    @PostMapping("/login")
+    public Result login(@RequestBody Map<String, String> loginMap){
+        try {
+            String mobile = loginMap.get("mobile");
+            String password = loginMap.get("password");
+            //密码加密
+            password = new Md5Hash(password, mobile, 3).toString();
+            UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(mobile, password);
+            Subject subject = SecurityUtils.getSubject();
+            subject.login(usernamePasswordToken);
+            String sessionId = subject.getSession().getId().toString();
+            return new Result(ResultCode.SUCCESS, sessionId);
+        } catch (AuthenticationException e) {
+            return new Result(ResultCode.MOBILEORPASSWORDERROR);
+        }
     }
+
+    @PostMapping("/profile")
+    public Result profile(HttpServletRequest request){
+        Subject subject = SecurityUtils.getSubject();
+        PrincipalCollection principals = subject.getPrincipals();
+        ProfileResult result = (ProfileResult) principals.getPrimaryPrincipal();
+        return new Result(ResultCode.SUCCESS, result);
+    }
+
 }
