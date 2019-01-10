@@ -21,6 +21,7 @@ public class BaseController {
     protected HttpServletRequest request;
     protected HttpServletResponse response;
     protected String companyId;
+    protected String userId;
     protected String companyName;
     protected Claims claims;
 
@@ -57,6 +58,7 @@ public class BaseController {
         if (principals != null && !principals.isEmpty()){
             ProfileResult result = (ProfileResult) principals.getPrimaryPrincipal();
             this.companyId = result.getCompanyId();
+            this.userId = result.getUserId();
             this.companyName = result.getCompany();
         }
     }
