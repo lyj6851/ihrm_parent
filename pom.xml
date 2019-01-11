@@ -13,6 +13,7 @@
         <module>ihrm_company</module>
         <module>ihrm_system</module>
         <module>ihrm_employee</module>
+        <module>ihrm_eureka</module>
     </modules>
     <packaging>pom</packaging>
     <name>ihrm_parent</name>
@@ -85,6 +86,22 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.16.16</version>
+        </dependency>
+        <!--POI-->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml-schemas</artifactId>
+            <version>4.0.1</version>
         </dependency>
     </dependencies>
 

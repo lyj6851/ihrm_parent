@@ -1,11 +1,14 @@
 package com.ihrm.domain.system;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.ihrm.domain.poi.ExcelAttribute;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -17,6 +20,7 @@ import java.util.Set;
 @Table(name = "bs_user")
 @Getter
 @Setter
+@NoArgsConstructor
 public class User implements Serializable {
     private static final long serialVersionUID = 4297464181093070302L;
     /**
@@ -27,10 +31,12 @@ public class User implements Serializable {
     /**
      * 手机号码
      */
+    @ExcelAttribute(sort = 2)
     private String mobile;
     /**
      * 用户名称
      */
+    @ExcelAttribute(sort = 1)
     private String username;
     /**
      * 密码
@@ -53,21 +59,25 @@ public class User implements Serializable {
     /**
      * 部门ID
      */
+    @ExcelAttribute(sort = 6)
     private String departmentId;
 
     /**
      * 入职时间
      */
+    @ExcelAttribute(sort = 5)
     private Date timeOfEntry;
 
     /**
      * 聘用形式
      */
+    @ExcelAttribute(sort = 4)
     private Integer formOfEmployment;
 
     /**
      * 工号
      */
+    @ExcelAttribute(sort = 3)
     private String workNumber;
 
     /**
@@ -99,6 +109,15 @@ public class User implements Serializable {
      * user：普通用户（需要分配角色）
      */
     private String level;
+
+    public User(Object[] values){
+        this.username = values[1].toString();
+        this.mobile = values[2].toString();
+        this.workNumber = new DecimalFormat("#").format(values[3]).toString();
+        this.formOfEmployment = ((Double)values[4]).intValue();
+        this.timeOfEntry = (Date) values[5];
+        this.departmentId = values[6].toString();
+    }
 
 
     @ManyToMany

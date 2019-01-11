@@ -4,12 +4,16 @@ import com.ihrm.common.controller.BaseController;
 import com.ihrm.common.entity.PageResult;
 import com.ihrm.common.entity.Result;
 import com.ihrm.common.entity.ResultCode;
+import com.ihrm.common.utils.ExcelImportUtil;
 import com.ihrm.common.utils.JwtUtils;
 import com.ihrm.domain.system.ProfileResult;
 import com.ihrm.domain.system.User;
 import com.ihrm.domain.system.response.UserResult;
+import com.ihrm.system.client.DepartmentClient;
 import com.ihrm.system.service.PermissionService;
 import com.ihrm.system.service.UserService;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -20,8 +24,11 @@ import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -170,4 +177,81 @@ public class UserController extends BaseController {
         return new Result(ResultCode.SUCCESS, result);
     }
 
+    @Autowired
+    DepartmentClient departmentClient;
+
+    /**
+     * 测试feign组件
+     */
+    @GetMapping("test/{id}")
+    public Result testFeign(@PathVariable(value = "id")String id){
+        Result result = departmentClient.findById(id);
+        return result;
+    }
+
+    /**
+     * 文件上传，导入用户信息
+     */
+    @PostMapping("/import")
+    public Result importUser(@RequestParam("file") MultipartFile file) throws IOException {
+        /*//1.解析excel
+        //根据excel文件创建工作薄
+        Workbook workbook = new XSSFWorkbook(file.getInputStream());
+        //获取sheet 根据索引
+        Sheet sheet1 = workbook.getSheetAt(0);
+        //获取sheet中的每一行，和每一个单元格内容
+        List<User> list = new ArrayList<>(sheet1.getLastRowNum()-1);
+
+        //2.通过解析，获取用户数据列表
+        for (int rowNum=1;rowNum<=sheet1.getLastRowNum();rowNum++){
+            //每一行数据
+            Row row = sheet1.getRow(rowNum);
+            Object[] values = new Object[row.getLastCellNum()];
+            for(int cellNum=1;cellNum<row.getLastCellNum();cellNum++){
+                //根据索引获取每一个单元格
+                Cell cell = row.getCell(cellNum);
+                //获取每一个单元格内容
+                Object value = getCellValue(cell);
+                values[cellNum] = value;
+            }
+            User user = new User(values);
+            list.add(user);
+        }*/
+
+        List<User> users = new ExcelImportUtil<User>(User.class).readExcel(file.getInputStream(), 1, 1);
+
+        //3.批量保存用户
+        userService.saveAll(users, companyId, companyName);
+        return new Result(ResultCode.SUCCESS);
+    }
+
+    public Object getCellValue(Cell cell){
+        Object value = null;
+        //获取单元格数据类型
+        CellType cellType = cell.getCellType();
+        switch (cellType){
+            case STRING:
+                value = cell.getStringCellValue();
+                break;
+            case BOOLEAN:
+                value = cell.getBooleanCellValue();
+                break;
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(cell)){
+                    //日期格式
+                    value = cell.getDateCellValue();
+                }else{
+                    //数字格式
+                    value = cell.getNumericCellValue();
+                }
+                break;
+            case FORMULA:
+                //公式
+                value = cell.getCellFormula();
+                break;
+            default:
+                break;
+        }
+        return value;
+    }
 }

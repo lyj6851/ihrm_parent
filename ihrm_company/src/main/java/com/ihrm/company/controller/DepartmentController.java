@@ -73,4 +73,12 @@ public class DepartmentController extends BaseController {
         return new Result(ResultCode.SUCCESS);
     }
 
+    /**
+     *
+     */
+    @GetMapping("/department/search")
+    public Department findByCode(@RequestParam(value = "code") String code, @RequestParam(value = "companyId")String companyId){
+        return departmentService.findByCode(code, companyId);
+    }
+
 }

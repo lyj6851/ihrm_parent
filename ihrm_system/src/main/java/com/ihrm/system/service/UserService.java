@@ -1,8 +1,10 @@
 package com.ihrm.system.service;
 
 import com.ihrm.common.utils.IdWorker;
+import com.ihrm.domain.company.Department;
 import com.ihrm.domain.system.Role;
 import com.ihrm.domain.system.User;
+import com.ihrm.system.client.DepartmentClient;
 import com.ihrm.system.dao.RoleDao;
 import com.ihrm.system.dao.UserDao;
 import org.apache.shiro.crypto.hash.Md5Hash;
@@ -11,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -36,6 +39,9 @@ public class UserService {
 
     @Autowired
     private IdWorker idWorker;
+
+    @Autowired
+    DepartmentClient departmentClient;
 
     /**
      * 保存用户
@@ -125,5 +131,33 @@ public class UserService {
      */
     public User findByMobile(String mobile){
         return userDao.findByMobile(mobile);
+    }
+
+    /**
+     * 批量用户保存
+     */
+    @Transactional
+    public void saveAll(List<User> list, String companyId, String companyName) {
+        for (User user : list) {
+            //默认密码
+            String password = "123";
+            //加密
+            password = new Md5Hash(password, user.getMobile(), 3).toString();
+            user.setPassword(password);
+            //id
+            user.setId(idWorker.nextId()+"");
+            //基本属性
+            user.setCompanyId(companyId);
+            user.setCompanyName(companyName);
+            user.setInServiceStatus(1);
+            user.setEnableState(1);
+            user.setLevel("user");
+            Department dept = departmentClient.findByCode(user.getDepartmentId(), companyId);
+            if (dept != null) {
+                user.setDepartmentId(dept.getId());
+                user.setDepartmentName(dept.getName());
+            }
+            userDao.save(user);
+        }
     }
 }

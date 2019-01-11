@@ -11,4 +11,6 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
  * @date 2019/01/03
  */
 public interface DepartmentDao extends JpaRepository<Department, String>, JpaSpecificationExecutor<Department> {
+
+    Department findByCodeAndCompanyId(String code, String companyId);
 }

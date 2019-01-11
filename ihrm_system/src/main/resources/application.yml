@@ -1,10 +1,14 @@
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:6868/eureka/
 #服务配置
 server:
   port: 9002
 #spring配置  1.应用配置 2.数据连接池 3.JPA
 spring:
   application:
-    name: ihrm-company
+    name: ihrm-system
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
     url: jdbc:mysql://47.100.238.213:53306/ihrm?characterEncoding=UTF8
