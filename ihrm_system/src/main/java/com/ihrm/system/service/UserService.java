@@ -1,6 +1,7 @@
 package com.ihrm.system.service;
 
 import com.ihrm.common.utils.IdWorker;
+import com.ihrm.common.utils.QiniuUploadUtil;
 import com.ihrm.domain.company.Department;
 import com.ihrm.domain.system.Role;
 import com.ihrm.domain.system.User;
@@ -174,7 +175,10 @@ public class UserService {
         //根据id查询用户
         User user = userDao.findById(id).get();
         //使用dataUrl的形式存储图片（对图片byte数组进行base64编码）
-        String encode = "data:image/png;base64," + Base64.encode(file.getBytes());
+        //String encode = "data:image/png;base64," + Base64.encode(file.getBytes());
+        //使用七牛云服务存储图片
+        QiniuUploadUtil qiniuUploadUtil = new QiniuUploadUtil();
+        String encode = "http://plb88i7zd.bkt.clouddn.com/" + qiniuUploadUtil.upload(id, file.getBytes());
         //更新用户头像
         user.setStaffPhoto(encode);
         userDao.save(user);
