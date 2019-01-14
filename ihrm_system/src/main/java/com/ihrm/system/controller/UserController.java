@@ -254,4 +254,12 @@ public class UserController extends BaseController {
         }
         return value;
     }
+
+    @PostMapping("/user/upload/{id}")
+    public Result upload(@PathVariable("id")String id,@RequestParam("file") MultipartFile file) throws IOException {
+        //调用service保存图片
+        String imgUrl = userService.uploadImage(id, file);
+        //返回数据
+        return new Result(ResultCode.SUCCESS, imgUrl);
+    }
 }
