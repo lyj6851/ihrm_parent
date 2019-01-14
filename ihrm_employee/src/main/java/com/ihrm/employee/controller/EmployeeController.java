@@ -9,6 +9,7 @@ import com.ihrm.common.utils.ExcelExportUtil;
 import com.ihrm.domain.employee.*;
 import com.ihrm.domain.employee.response.EmployeeReportResult;
 import com.ihrm.employee.service.*;
+import net.sf.jasperreports.engine.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -16,7 +17,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +42,50 @@ public class EmployeeController extends BaseController {
     private PositiveService positiveService;
     @Autowired
     private ArchiveService archiveService;
+
+    /**
+     * 打印员工PDF报表
+     */
+    @GetMapping("/{id}/pdf")
+    public void pdf(@PathVariable(value = "id")String id, HttpServletRequest request, HttpServletResponse response){
+        ServletOutputStream outputStream = null;
+        try {
+            outputStream = response.getOutputStream();
+            //引入jasper文件
+            Resource resource = new ClassPathResource("templates/profile.jasper");
+            FileInputStream fis = new FileInputStream(resource.getFile());
+            //构造数据
+            UserCompanyPersonal personal = userCompanyPersonalService.findById(id);
+            UserCompanyJobs jobs = userCompanyJobsService.findById(id);
+            //用户头像 域名
+            String staffPhoto = "http://plb88i7zd.bkt.clouddn.com/" + id;
+
+            //填充PDF模板数据，并输入流
+            Map parameters = new HashMap<>();
+            parameters.put("staffPhoto", staffPhoto);
+            Map<String, Object> map1 = BeanMapUtils.beanToMap(personal);
+            Map<String, Object> map2 = BeanMapUtils.beanToMap(jobs);
+            parameters.putAll(map1);
+            parameters.putAll(map2);
+
+            JasperPrint jasperPrint = JasperFillManager.fillReport(fis, parameters, new JREmptyDataSource());
+            //将JasperPrint文件以PDF的形式输出
+            outputStream = response.getOutputStream();
+            JasperExportManager.exportReportToPdfStream(jasperPrint, outputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (JRException e) {
+            e.printStackTrace();
+        } finally {
+            if (outputStream != null){
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
 
     /**
